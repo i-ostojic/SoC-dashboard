@@ -1,0 +1,21 @@
+.watermark {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 50;
+}
+
+.watermark a {
+  color: var(--text-secondary);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.watermark a:hover {
+  color: var(--accent);
+}
