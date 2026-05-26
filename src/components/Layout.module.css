@@ -1,12 +1,16 @@
 .watermark {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1.5rem;
-  z-index: 50;
+  padding: 1.5rem 0;
+  margin-top: auto;
+}
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .watermark a {
