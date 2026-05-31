@@ -1,16 +1,36 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './Login.module.css'
+import axios from 'axios'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const navigate = useNavigate()
+  const [error, setError] = useState('')
 
-  const handleLogin = () => {
+const handleLogin = async () => {
+  try {
+    const response = await axios.post('http://localhost:3000/api/auth/login', {
+      email,
+      password
+    })
+
+    const { token } = response.data
+
+    if (rememberMe) {
+      localStorage.setItem('token', token)
+    } else {
+      sessionStorage.setItem('token', token)
+    }
+
     navigate('/dashboard')
+
+  } catch (err) {
+    setError('Pogrešan email ili lozinka')
   }
+}
 
   return (
     <div className={styles.container}>
@@ -53,6 +73,7 @@ const Login = () => {
 
             <button className={styles.button} onClick={handleLogin}>
                 Prijavi se
+                {error && <p style={{ color: 'var(--danger)', fontSize: '0.875rem', marginTop: '0.5rem' }}>{error}</p>}
             </button>
 
         </div>
