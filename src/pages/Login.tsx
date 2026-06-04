@@ -1,13 +1,17 @@
+// import stila, axios poziva, hook funkcija useState i useNavigate
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './Login.module.css'
 import axios from 'axios'
 
+// funkcija login sa handleLogin u kojoj stavimo axios poziv
+
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const navigate = useNavigate()
+  const [email, setEmail] = useState('')   // varijabla koja se mijenja, funkcija koja ju mijenja
+  const [password, setPassword] = useState('') // ('') == pocetno stanje == prazan string
+  const [rememberMe, setRememberMe] = useState(false) // pocetno stanje je false, ovo je bool
+  const navigate = useNavigate() // varijabla navigate u koju je spremljena funkcija useNavigate()
   const [error, setError] = useState('')
 
 const handleLogin = async () => {
@@ -19,11 +23,15 @@ const handleLogin = async () => {
 
     const { token } = response.data
 
+    // spremi token u localStorage ako je rememberMe checkiran odnosno u sessionStorage ako nije
+
     if (rememberMe) {
       localStorage.setItem('token', token)
     } else {
       sessionStorage.setItem('token', token)
     }
+
+    // ako je token valjan otidi na dashboard
 
     navigate('/dashboard')
 
@@ -45,6 +53,9 @@ const handleLogin = async () => {
                 type="email"
                 placeholder="ivan@example.com"
                 value={email}
+
+                // controlled input emaila
+
                 onChange={(e) => setEmail(e.target.value)}
                 className={styles.input}
                 />
@@ -56,6 +67,9 @@ const handleLogin = async () => {
                 type="password"
                 placeholder="••••••••"
                 value={password}
+
+                // controlled input lozinke
+
                 onChange={(e) => setPassword(e.target.value)}
                 className={styles.input}
                 />

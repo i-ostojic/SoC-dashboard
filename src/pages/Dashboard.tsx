@@ -1,5 +1,6 @@
-import styles from './Dashboard.module.css'
-import { useEffect, useState } from 'react'
+import styles from "./Dashboard.module.css";
+import { useEffect, useState } from "react";
+import { getReadings } from "../services/api";
 import {
   LineChart,
   Line,
@@ -7,40 +8,37 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
-} from 'recharts'
+  ResponsiveContainer,
+} from "recharts";
 
-// Mock podaci za sada
-const mockReadings = [
-  { time: '08:00', voltage: 3.75, temperature: 24.5 },
-  { time: '09:00', voltage: 3.82, temperature: 25.1 },
-  { time: '10:00', voltage: 3.69, temperature: 23.8 },
-  { time: '11:00', voltage: 3.91, temperature: 26.2 },
-  { time: '12:00', voltage: 3.78, temperature: 25.7 },
-  { time: '13:00', voltage: 3.85, temperature: 24.9 },
-  { time: '14:00', voltage: 3.72, temperature: 27.1 },
-]
+// Tip za jedno očitanje
+type Reading = {
+  id: string;
+  device_id: string;
+  voltage: number;
+  current: number;
+  temperature: number;
+  recorded_at: string;
+  created_at: string;
+};
 
-const sohPercentage = 85
-
-// SOH Gauge komponenta
+// SOH Gauge - mora biti IZVAN Dashboard komponente
 const SohGauge = ({ value }: { value: number }) => {
-  const [animatedValue, setAnimatedValue] = useState(0)
-  const radius = 80
-  const strokeWidth = 12
-  const circumference = Math.PI * radius
-  const progress = (animatedValue / 100) * circumference
+  const [animatedValue, setAnimatedValue] = useState(0);
+  const radius = 80;
+  const strokeWidth = 12;
+  const circumference = Math.PI * radius;
+  const progress = (animatedValue / 100) * circumference;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setAnimatedValue(value)
-    }, 300)
-    return () => clearTimeout(timeout)
-  }, [value])
+      setAnimatedValue(value);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [value]);
 
   return (
     <svg width="220" height="130" viewBox="0 0 220 130">
-      {/* Pozadinski luk */}
       <path
         d={`M 20 110 A ${radius} ${radius} 0 0 1 200 110`}
         fill="none"
@@ -48,7 +46,6 @@ const SohGauge = ({ value }: { value: number }) => {
         strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
-      {/* Aktivni luk - s CSS tranzicijom */}
       <path
         d={`M 20 110 A ${radius} ${radius} 0 0 1 200 110`}
         fill="none"
@@ -56,9 +53,8 @@ const SohGauge = ({ value }: { value: number }) => {
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={`${progress} ${circumference}`}
-        style={{ transition: 'stroke-dasharray 1.2s ease' }}
+        style={{ transition: "stroke-dasharray 1.2s ease" }}
       />
-      {/* Postotak */}
       <text
         x="110"
         y="90"
@@ -69,7 +65,6 @@ const SohGauge = ({ value }: { value: number }) => {
       >
         {Math.round(animatedValue)}%
       </text>
-      {/* Label */}
       <text
         x="110"
         y="115"
@@ -80,31 +75,59 @@ const SohGauge = ({ value }: { value: number }) => {
         State of Health
       </text>
     </svg>
-  )
-}
+  );
+};
 
+// Dashboard komponenta
 const Dashboard = () => {
+  const [readings, setReadings] = useState<Reading[]>([]);
+  const [loading, setLoading] = useState(true);
+  const sohPercentage = 85;
+
+  useEffect(() => {
+    const fetchReadings = async () => {
+      try {
+        const response = await getReadings();
+        setReadings(response.data);
+      } catch (err) {
+        console.error("Greška pri dohvaćanju podataka:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReadings();
+  }, []);
+
+  const latest = readings[readings.length - 1];
+
+  if (loading) {
+    return (
+      <div style={{ padding: "2rem", color: "var(--text-dark)" }}>
+        Učitavanje...
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
-
-      {/* Kartice */}
       <div className={styles.cardsRow}>
         <div className={styles.card}>
           <span className={styles.cardLabel}>Napon</span>
           <span className={styles.cardValue}>
-            3.75 <span className={styles.cardUnit}>V</span>
+            {latest?.voltage ?? "-"} <span className={styles.cardUnit}>V</span>
           </span>
         </div>
         <div className={styles.card}>
           <span className={styles.cardLabel}>Struja</span>
           <span className={styles.cardValue}>
-            1.20 <span className={styles.cardUnit}>A</span>
+            {latest?.current ?? "-"} <span className={styles.cardUnit}>A</span>
           </span>
         </div>
         <div className={styles.card}>
           <span className={styles.cardLabel}>Temperatura</span>
           <span className={styles.cardValue}>
-            24.5 <span className={styles.cardUnit}>°C</span>
+            {latest?.temperature ?? "-"}{" "}
+            <span className={styles.cardUnit}>°C</span>
           </span>
         </div>
         <div className={styles.card}>
@@ -115,7 +138,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* SOH Gauge */}
       <div className={styles.gaugeRow}>
         <div className={styles.gaugeCard}>
           <span className={styles.gaugeTitle}>State of Health</span>
@@ -123,21 +145,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Grafovi */}
       <div className={styles.chartsRow}>
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle}>Graf napona</h3>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={mockReadings}>
+            <LineChart data={readings}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={12} />
-              <YAxis stroke="var(--text-secondary)" fontSize={12} domain={['auto', 'auto']} />
+              <XAxis
+                dataKey="recorded_at"
+                stroke="var(--text-secondary)"
+                fontSize={12}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
+                }}
+              />
+              <YAxis
+                stroke="var(--text-secondary)"
+                fontSize={12}
+                domain={["auto", "auto"]}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '0.5rem',
-                  color: 'var(--text-primary)'
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "0.5rem",
+                  color: "var(--text-primary)",
                 }}
               />
               <Line
@@ -154,16 +187,28 @@ const Dashboard = () => {
         <div className={styles.chartCard}>
           <h3 className={styles.chartTitle}>Graf temperature</h3>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={mockReadings}>
+            <LineChart data={readings}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={12} />
-              <YAxis stroke="var(--text-secondary)" fontSize={12} domain={['auto', 'auto']} />
+              <XAxis
+                dataKey="recorded_at"
+                stroke="var(--text-secondary)"
+                fontSize={12}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getUTCHours().toString().padStart(2, "0")}:${date.getUTCMinutes().toString().padStart(2, "0")}`;
+                }}
+              />
+              <YAxis
+                stroke="var(--text-secondary)"
+                fontSize={12}
+                domain={["auto", "auto"]}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '0.5rem',
-                  color: 'var(--text-primary)'
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "0.5rem",
+                  color: "var(--text-primary)",
                 }}
               />
               <Line
@@ -177,9 +222,8 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

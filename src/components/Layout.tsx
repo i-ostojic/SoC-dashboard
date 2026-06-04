@@ -1,3 +1,10 @@
+// LAYOUT
+// import Navbara i stila
+// Navbar se pokazuje uvijek a sadrzaj ispod njega jest Outlet
+// Outlet prikazuje stranicu na kojoj smo trenutno
+
+// Ispod svega je watermark
+
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import styles from './Layout.module.css'

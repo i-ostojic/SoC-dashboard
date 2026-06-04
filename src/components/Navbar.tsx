@@ -1,3 +1,5 @@
+// Import hook funkcija, Link-a koji sluzi za navigaciju i stilova
+
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import styles from './Navbar.module.css'
@@ -6,17 +8,22 @@ const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  // referenca na html DIV element, pocetno stanje je prazno
+
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  //  reagira na event = mouseclick
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
+        setDropdownOpen(false) // ukoliko je klik izvan containera mijenja stanje dropdown menua
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, []) //   slusa klik
 
   const handleLogout = () => {
     navigate('/')
