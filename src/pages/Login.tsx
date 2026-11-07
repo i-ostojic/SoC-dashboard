@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './Login.module.css'
-import axios from 'axios'
+import { login } from '../services/api'
 
 // funkcija login sa handleLogin u kojoj stavimo axios poziv
 
@@ -16,10 +16,7 @@ const Login = () => {
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('http://localhost:3000/api/auth/login', {
-      email,
-      password
-    })
+    const response = await login(email, password)
 
     const { token } = response.data
 
@@ -35,7 +32,7 @@ const handleLogin = async () => {
 
     navigate('/dashboard')
 
-  } catch (err) {
+  } catch {
     setError('Pogrešan email ili lozinka')
   }
 }

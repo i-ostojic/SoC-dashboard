@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:3000'
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 const getToken = () => {
     return localStorage.getItem('token') || sessionStorage.getItem('token')
@@ -24,5 +24,7 @@ api.interceptors.request.use((config) => {
 
 export const getReadings = () => api.get('/api/readings')
 export const getDevices = () => api.get('/api/devices')
+export const login = (email: string, password: string) =>
+  api.post('/api/auth/login', { email, password })
 
 export default api
